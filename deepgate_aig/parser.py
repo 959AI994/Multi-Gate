@@ -33,8 +33,6 @@ class NpzParser():
         training_cutoff = int(data_len * trainval_split)
         self.train_dataset = dataset[:training_cutoff]
         self.val_dataset = dataset[training_cutoff:]
-        # self.train_dataset = DataLoader(self.train_dataset, batch_size=batch_size, shuffle=True, drop_last=True, num_workers=num_workers)
-        # self.val_dataset = DataLoader(self.val_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
         
     def get_dataset(self):
         return self.train_dataset, self.val_dataset
@@ -86,42 +84,19 @@ class NpzParser():
                     tt_pair_index = circuits[cir_name]['tt_pair_index']
                     prob = circuits[cir_name]['prob']
 
-                    #---------------------------------------------------------------------------------------------
-                    # x = circuits[cir_name]["x"]
-                    # edge_index = circuits[cir_name]["edge_index"]
-                    # tt_dis = labels[cir_name]['tt_dis']
-                    # tt_pair_index = labels[cir_name]['tt_pair_index']
-                    # prob = labels[cir_name]['prob']
-
-
                     if len(tt_pair_index) == 0 :
                         print('No tt or rc pairs: ', cir_name)
                         continue
 
                     tot_pairs += len(tt_dis)
 
-                    # check the gate types
-                    # assert (x[:, 1].max() == (len(self.args.gate_to_index)) - 1), 'The gate types are not consistent.'
                     graph = parse_pyg_mlpgate(
                         x, edge_index, prob, tt_dis, tt_pair_index 
                     )
                     graph.gate = torch.tensor(circuits[cir_name]['gate'])
                     graph.name = cir_name
                     data_list.append(graph)
-                    #print("data_list =", len(data_list)) 
 
-            # while j < len(data_list):
-            #     for i in range(len(data_list)):
-            #         current_batch = data_list[:i+1]
-            #         try:
-            #             data, slices = self.collate(current_batch)
-            #             print(f"Batch {i} processed successfully.")
-            #             j += 1
-            #         except Exception as e:
-            #             print(f"Error processing Batch {i}: {e}")
-            #             print("data_list =", data_list[i])
-            #             del data_list[i]
-            #             break
             data, slices = self.collate(data_list)
             torch.save((data, slices), self.processed_paths[0])
             print('[INFO] Inmemory dataset save: ', self.processed_paths[0])
